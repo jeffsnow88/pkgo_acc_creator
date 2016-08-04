@@ -1,20 +1,15 @@
 import requests
-import urllib
 import io
 from tempmail import TempMail #pip install temp-mail
 from bs4 import BeautifulSoup
 import time
+import os
 
-
-
-
-#for key in client.cookies.keys():
-#    print('%s: %s' % (key, client.cookies[key]))
-
-#C:\Python27\python.exe "$(FULL_CURRENT_PATH)"
 
 
 def CreateAcc():
+	os.system('cls')
+	print 'Snow - PKGO Account Creator v0.1 \n\n\n'
 	my_pw = "lglglg"
 	#1st Step - DOB/Country
 	signup_url = "https://club.pokemon.com/us/pokemon-trainer-club/sign-up/"
@@ -41,10 +36,10 @@ def CreateAcc():
 	
 	verify_json =  verify_response.json()
 	if verify_json['inuse']: #se o username ja estiver em uso encerra
-		print name + ': NOT AVAILABLE, BYE!'
+		print name + ' is not available, BYE!'
 		return False
 	else:
-		print name + ": is available"
+		print name + " is available"
 
 
 
@@ -52,40 +47,31 @@ def CreateAcc():
 	final_signup_url = "https://club.pokemon.com/us/pokemon-trainer-club/parents/sign-up"
 	client.get(final_signup_url)
 	myemail = name + '@extremail.ru' #https://api.temp-mail.ru/request/domains/
-	myemail = "jeffersonferreiraneves+" + name + "@gmail.com"
+
 
 	
-	final_sign_up_parameters = {'csrfmiddlewaretoken':csrftoken, 'username':name, 'password':my_pw, 'confirm_password':'lglglglg', 'email':myemail, 'confirm_email':myemail,
+	final_sign_up_parameters = {'csrfmiddlewaretoken':csrftoken, 'username':name, 'password':my_pw, 'confirm_password':my_pw, 'email':myemail, 'confirm_email':myemail,
 								'public_profile_opt_in':'False','screen_name':'','terms':'on'}		
 	headers = {'Referer' : final_signup_url}
 	verify_response =client.post(final_signup_url, data=final_sign_up_parameters, headers=headers,cookies=client.cookies) #valida o username	
-	print verify_response.url
-	print 'Account created: ' + name
+	print 'Account created!'
 
-	
-	exit()
+
 	#3rd Step - Get Activation Link
 	print 'Looking for activation e-mail...'
 	tm = TempMail(login=name, domain='@extremail.ru')
 	temp_mail_box =  tm.get_mailbox() #pegando a cx de email
-	while temp_mail_box["error"] == "There are no emails yet":
-		print "Still waiting for validation e-mail, sleeping for 3sec"
-		time.sleep(3)
-		tm = TempMail(login=myemail, domain='@extremail.ru')
-		temp_mail_box =  tm.get_mailbox() #pegando a cx de email
-	else:
-		lastemail = -1
-		for emails in temp_mail_box: #vamos buscar o ultimo email do dest especifico
-			if "noreply@pokemon.com" in emails["mail_from"]:
-				lastemail += 1
-				
-		html_content =  temp_mail_box[lastemail]["mail_html"] #pegar o html(em unicode)
-		soup = BeautifulSoup(html_content, 'html.parser') #unicode -> html
-		print 'vou pegar o link'
-		for link in soup.find_all('a'): #buscar todos links e ver se contem activated
-			activation_link = str(link.get('href'))
-			if "activated" in activation_link:
-				email_arrived = True
+	lastemail = -1
+	for emails in temp_mail_box: #vamos buscar o ultimo email do dest especifico
+		if "noreply@pokemon.com" in emails["mail_from"]:
+			lastemail += 1
+			
+	html_content =  temp_mail_box[lastemail]["mail_html"] #pegar o html(em unicode)
+	soup = BeautifulSoup(html_content, 'html.parser') #unicode -> html
+	for link in soup.find_all('a'): #buscar todos links e ver se contem activated
+		activation_link = str(link.get('href'))
+		if "activated" in activation_link:
+			email_arrived = True
 			print "Activation link found: " + activation_link
 
 				
@@ -93,9 +79,10 @@ def CreateAcc():
 	#4th Step - Activate Account
 	activate_status = False
 	while not activate_status:
-		opener = urllib.FancyURLopener({})
-		f = opener.open(activation_link).read()
-		if ("already" in f) or ("thanks" in f):
+		f = requests.get(activation_link)
+		with open("test.txt", "w") as myfile:
+			myfile.write(f.content)
+		if ("activated" in f.content) or ("Your account is now active" in f.content):
 			activate_status = True
 			print "Account is now validated!"
 			with open("Accounts.txt", "a") as myfile:
