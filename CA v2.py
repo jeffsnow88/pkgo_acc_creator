@@ -10,7 +10,7 @@ import os
 def CreateAcc():
 	os.system('cls')
 	print 'Snow - PKGO Account Creator v0.1 \n\n\n'
-	my_pw = "lglglg"
+	my_pw = "teste123"
 	#1st Step - DOB/Country
 	signup_url = "https://club.pokemon.com/us/pokemon-trainer-club/sign-up/"
 	client = requests.Session()
